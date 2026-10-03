@@ -1,0 +1,52 @@
+name: testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ${{ matrix.so }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        so: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # Os teoremas de impossibilidade nao sao citados: os contraexemplos sao
+      # PROCURADOS, varrendo todos os perfis de um tamanho. A busca devolve o
+      # perfil exato junto com a explicacao.
+      #
+      # E vale tambem para o RESULTADO NEGATIVO: Copeland e minimax respeitam
+      # Condorcet, e isso nao e afirmado, e a varredura inteira que roda sem
+      # achar nada. Um teste que so procura violacoes e sempre acha nao
+      # distingue um metodo ruim de uma busca mal feita.
+      #
+      # A enumeracao e por CONTAGEM e nao por sequencia de cedulas, porque todo
+      # metodo aqui e anonimo. Isso derruba o espaco de (c!)^e para
+      # C(e + c! - 1, c! - 1), e e o que torna possivel chegar a treze
+      # eleitores: a violacao de monotonicidade do segundo turno nao existe com
+      # menos que isso.
+      - name: testes
+        run: dotnet test testes/Votacao.Testes/Votacao.Testes.csproj -c Release --nologo -v q
+
+      # As medidas rodam para REGISTRAR numeros.
+      - name: a tabela de criterios, procurada
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- tabela
+
+      - name: o paradoxo de Condorcet, em fracao dos perfis
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- ciclos
+
+      - name: em quantos perfis os metodos discordam
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- discordam
+
+      - name: o espaco de busca, por sequencia e por contagem
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release -- espaco
